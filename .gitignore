@@ -1,27 +1,32 @@
+
 # Python cache
 __pycache__/
 *.py[cod]
+*.pyo
 
 # Virtual environments
 .venv/
 venv/
 env/
+backend/.venv/
 
 # Environment variables and secrets
 .env
 .env.*
 !.env.example
 
-# Frontend dependencies
-node_modules/
-dist/
-build/
-
-# Testing and logs
+# Python testing and logs
 .pytest_cache/
 .coverage
 *.log
 
-# Editor files
+# Frontend dependencies and builds
+node_modules/
+dist/
+build/
+
+# Editor and operating system files
 .vscode/
 .idea/
+.DS_Store
+Thumbs.db

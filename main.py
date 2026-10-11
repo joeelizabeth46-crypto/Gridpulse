@@ -1,59 +1,48 @@
-
 from fastapi import FastAPI
-from sqlalchemy import text
+from app.services.weather_service import get_current_weather
+from app.services.solar_services import get_solar_position
+from app.services.data_processor import get_environmental_data
 
-from backend.database import engine
-from backend.database import get_db
-from backend.power import router as power_router
-from backend.environment import router as environment_router
-from backend.forecast import router as forecast_router
-from backend.weather import get_current_weather
-from backend.users import router as users_router
-
-app = FastAPI(
-    title="GridPulse API",
-    description="Backend API for GridPulse solar power forecasting",
-    version="1.0.0"
+from app.services.historical_prediction_service import (
+    get_historical_prediction,
 )
-
-
-app.include_router(power_router)
-app.include_router(environment_router)
-app.include_router(forecast_router)
-app.include_router(users_router)
-
-@app.get("/api/weather/current", tags=["Weather"])
-def current_weather():
-    return get_current_weather()
+app = FastAPI(title="GridPulse API")
 
 
 @app.get("/")
-def root():
+def home():
     return {
         "message": "GridPulse API is running"
     }
 
 
-@app.get("/health")
-def health():
+@app.get("/api/weather")
+def weather(latitude: float, longitude: float):
+    return get_current_weather(latitude, longitude)
+
+@app.get("/api/solar-position")
+def solar_position(latitude: float, longitude: float):
+    return get_solar_position(latitude, longitude)
+
+@app.get("/api/environmental-data")
+def environmental_data(latitude: float, longitude: float):
+    return get_environmental_data(latitude, longitude)
+
+@app.get("/api/historical-prediction")
+def historical_prediction():
+    return get_historical_prediction()
+
+@app.get("/api/gridpulse-forecast")
+def gridpulse_forecast(latitude: float, longitude: float):
+    environmental_data = get_environmental_data(
+        latitude, longitude
+    )
+
+    prediction_data = get_historical_prediction()
+
     return {
-        "status": "healthy"
+        "location": environmental_data["location"],
+        "weather": environmental_data["weather"],
+        "solar": environmental_data["solar"],
+        "prediction": prediction_data,
     }
-
-
-@app.get("/health/database")
-def database_health():
-    try:
-        with engine.connect() as connection:
-            connection.execute(text("SELECT 1"))
-
-        return {
-            "status": "healthy",
-            "database": "connected"
-        }
-
-    except Exception:
-        return {
-            "status": "unhealthy",
-            "database": "disconnected"
-        }
